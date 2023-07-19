@@ -56,7 +56,7 @@ contract Staking is
         StakerInfo storage staker = stakers[msg.sender];
 
         if (staker.stakedAmount > 0) {
-            uint256 pendingReward = _calculatePendingReward(msg.sender);
+            uint256 pendingReward = _calculatePendingReward(staker);
             if (pendingReward > 0) staker.rewardDebt += pendingReward;
         }
 
@@ -73,7 +73,7 @@ contract Staking is
     function withdraw(uint256 _amount) external {
         StakerInfo storage staker = stakers[msg.sender];
 
-        uint256 pendingReward = _calculatePendingReward(msg.sender);
+        uint256 pendingReward = _calculatePendingReward(staker);
         if (pendingReward > 0) staker.rewardDebt += pendingReward;
 
         staker.stakedAmount -= _amount;
@@ -91,9 +91,8 @@ contract Staking is
     }
 
     function _calculatePendingReward(
-        address _user
+        StakerInfo storage staker
     ) internal view returns (uint256 totalReward) {
-        StakerInfo storage staker = stakers[_user];
         if (
             staker.stakedAmount == 0 ||
             block.timestamp <= staker.lastRewardTimestamp
@@ -114,6 +113,13 @@ contract Staking is
                 365 days /
                 1 ether;
         }
+    }
+
+    function viewPendingRewards(
+        address _address
+    ) external view returns (uint256) {
+        StakerInfo storage staker = stakers[_address];
+        return _calculatePendingReward(staker);
     }
 
     function mint(uint256 _amount, address _address) external onlyOwner {

@@ -79,6 +79,26 @@ contract StaticStakingTest is StakingTest {
     }
 
     /// @dev Test withdrawing when the staking is static
+    function testPendingRewardStaticCalculation() public {
+        uint256 amountToStake = INITIAL_TOKEN_SUPPLY;
+        token.approve(address(staking), amountToStake);
+        staking.stake(amountToStake);
+
+        uint interval = 100 days;
+
+        skip(interval);
+
+        assertEq(
+            staking.viewPendingRewards(address(this)),
+            _calculateStaticRewards(
+                amountToStake,
+                interval,
+                STATIC_INTEREST_RATE
+            )
+        );
+    }
+
+    /// @dev Test withdrawing when the staking is static
     function testWithdrawStatic() public {
         uint256 amountToStake = INITIAL_TOKEN_SUPPLY;
         token.approve(address(staking), amountToStake);

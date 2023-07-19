@@ -57,7 +57,7 @@ contract Staking is
 
         if (staker.stakedAmount > 0) {
             uint256 pendingReward = _calculatePendingReward(staker);
-            if (pendingReward > 0) staker.rewardDebt += pendingReward;
+            staker.rewardDebt += pendingReward;
         }
 
         staker.lastRewardTimestamp = block.timestamp;
@@ -74,7 +74,7 @@ contract Staking is
         StakerInfo storage staker = stakers[msg.sender];
 
         uint256 pendingReward = _calculatePendingReward(staker);
-        if (pendingReward > 0) staker.rewardDebt += pendingReward;
+        staker.rewardDebt += pendingReward;
 
         staker.stakedAmount -= _amount;
         totalStaked -= _amount;

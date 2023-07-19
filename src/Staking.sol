@@ -6,6 +6,7 @@ import "openzeppelin-contracts-upgradeable/contracts/token/ERC20/utils/SafeERC20
 import "openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
 import "openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
 import "openzeppelin-contracts-upgradeable/contracts/token/ERC20/extensions/ERC20PausableUpgradeable.sol";
+import "./Math.sol";
 
 contract Staking is
     Initializable,
@@ -26,19 +27,24 @@ contract Staking is
     IERC20Upgradeable public token;
 
     uint256 public staticInterestRate; /// @dev FORMAT: 1 ether = 100%
-    uint256 public dynamicRewardAmount;
-    uint256 public dynamicRewardDuration;
+    uint256 public dynamicRewardsRate;
+    uint256 public dynamicRewardsFinishAt;
     bool public isStakingDynamic;
 
     mapping(address => StakerInfo) public stakers;
 
     uint256 public totalStaked;
 
+    /// @dev Required variables for dynamic staking
+    mapping(address => uint) public userRewardPerTokenPaid;
+    uint public rewardPerToken;
+    uint public lastUpdateTime; /// @dev Last timestamp when someone staked or withdrew
+
     function initialize(
         IERC20Upgradeable _token,
         uint256 _staticInterestRate,
-        uint256 _dynamicRewardAmount,
-        uint256 _dynamicRewardDuration,
+        uint256 _dynamicRewardsAmount,
+        uint256 _dynamicRewardsDuration,
         bool _isStakingDynamic
     ) external initializer {
         __Ownable_init();
@@ -47,8 +53,8 @@ contract Staking is
 
         token = _token;
         staticInterestRate = _staticInterestRate;
-        dynamicRewardAmount = _dynamicRewardAmount;
-        dynamicRewardDuration = _dynamicRewardDuration;
+        dynamicRewardsRate = _dynamicRewardsAmount / _dynamicRewardsDuration;
+        dynamicRewardsFinishAt = block.timestamp + _dynamicRewardsDuration;
         isStakingDynamic = _isStakingDynamic;
     }
 
@@ -56,7 +62,9 @@ contract Staking is
         StakerInfo storage staker = stakers[msg.sender];
 
         if (staker.stakedAmount > 0) {
-            uint256 pendingReward = _calculatePendingReward(staker);
+            uint256 pendingReward = isStakingDynamic
+                ? _handleDynamicStakingState(staker)
+                : _calculatePendingReward(staker);
             staker.rewardDebt += pendingReward;
         }
 
@@ -73,7 +81,9 @@ contract Staking is
     function withdraw(uint256 _amount) external whenNotPaused {
         StakerInfo storage staker = stakers[msg.sender];
 
-        uint256 pendingReward = _calculatePendingReward(staker);
+        uint256 pendingReward = isStakingDynamic
+            ? _handleDynamicStakingState(staker)
+            : _calculatePendingReward(staker);
         staker.rewardDebt += pendingReward;
 
         staker.stakedAmount -= _amount;
@@ -83,6 +93,14 @@ contract Staking is
         token.safeTransfer(msg.sender, _amount);
 
         emit Withdrawn(msg.sender, _amount);
+    }
+
+    function setRewards(uint _amount, uint _duration) external onlyOwner {
+        require(dynamicRewardsFinishAt < block.timestamp); /// @dev Make sure contract isn't giving rewards anymore
+        require(_amount > 0); /// @dev Make sure rewards amount is more than 0
+        dynamicRewardsFinishAt = block.timestamp + _duration;
+        dynamicRewardsRate = _amount / _duration;
+        lastUpdateTime = block.timestamp;
     }
 
     function getStakerInfo(
@@ -105,7 +123,10 @@ contract Staking is
             staker.lastRewardTimestamp;
 
         if (isStakingDynamic) {
-            // TODO: Calculate dynamic reward
+            totalReward =
+                (staker.stakedAmount *
+                    (rewardPerToken - userRewardPerTokenPaid[msg.sender])) /
+                1 ether;
         } else {
             totalReward =
                 (staker.stakedAmount *
@@ -121,6 +142,32 @@ contract Staking is
     ) external view returns (uint256) {
         StakerInfo storage staker = stakers[_address];
         return _calculatePendingReward(staker);
+    }
+
+    function _handleDynamicStakingState(
+        StakerInfo storage stakerInfo
+    ) private returns (uint rewards) {
+        if (totalStaked != 0) {
+            uint lastApplicableTime = _lastApplicableTime();
+            rewardPerToken +=
+                ((dynamicRewardsRate * (lastApplicableTime - lastUpdateTime)) *
+                    1 ether) /
+                totalStaked;
+            rewards =
+                (stakerInfo.stakedAmount *
+                    (rewardPerToken - userRewardPerTokenPaid[msg.sender])) /
+                1 ether;
+            userRewardPerTokenPaid[msg.sender] = rewardPerToken;
+            lastUpdateTime = lastApplicableTime;
+        }
+    }
+
+    /// @dev When calculating rewards, we want to don't want to include the current timestamp
+    /// @dev in the calculations if the contract isn't giving out rewards anymore.
+    /// @dev Returns the last applicable time based on the current time and the finish time of giving rewards.
+    /// @return The last applicable time.
+    function _lastApplicableTime() internal view returns (uint) {
+        return Math.min(block.timestamp, dynamicRewardsFinishAt);
     }
 
     function mint(uint256 _amount, address _address) external onlyOwner {

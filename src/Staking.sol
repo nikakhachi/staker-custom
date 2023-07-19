@@ -61,12 +61,9 @@ contract Staking is
     function stake(uint256 _amount) external whenNotPaused {
         StakerInfo storage staker = stakers[msg.sender];
 
-        if (staker.stakedAmount > 0) {
-            uint256 pendingReward = isStakingDynamic
-                ? _handleDynamicStakingState(staker)
-                : _calculatePendingReward(staker);
-            staker.rewardDebt += pendingReward;
-        }
+        uint256 pendingReward = _handleRewards(staker);
+
+        staker.rewardDebt += pendingReward;
 
         staker.lastRewardTimestamp = block.timestamp;
 
@@ -81,9 +78,8 @@ contract Staking is
     function withdraw(uint256 _amount) external whenNotPaused {
         StakerInfo storage staker = stakers[msg.sender];
 
-        uint256 pendingReward = isStakingDynamic
-            ? _handleDynamicStakingState(staker)
-            : _calculatePendingReward(staker);
+        uint256 pendingReward = _handleRewards(staker);
+
         staker.rewardDebt += pendingReward;
 
         staker.stakedAmount -= _amount;
@@ -109,56 +105,61 @@ contract Staking is
         return stakers[_address];
     }
 
-    function _calculatePendingReward(
+    function _calculatePendingRewardStatic(
         StakerInfo storage staker
     ) internal view returns (uint256 totalReward) {
-        if (
-            staker.stakedAmount == 0 ||
-            block.timestamp <= staker.lastRewardTimestamp
-        ) {
-            return 0;
-        }
-
         uint256 secondsSinceLastReward = block.timestamp -
             staker.lastRewardTimestamp;
 
+        totalReward =
+            (staker.stakedAmount *
+                staticInterestRate *
+                secondsSinceLastReward) /
+            365 days /
+            1 ether;
+    }
+
+    function _calculatePendingRewardDynamic(
+        StakerInfo storage staker
+    ) internal view returns (uint256 totalReward, uint256 newRewardPerToken) {
+        newRewardPerToken =
+            rewardPerToken +
+            ((dynamicRewardsRate * (_lastApplicableTime() - lastUpdateTime)) *
+                1 ether) /
+            totalStaked;
+        totalReward =
+            (staker.stakedAmount *
+                (rewardPerToken - userRewardPerTokenPaid[msg.sender])) /
+            1 ether;
+    }
+
+    function _handleRewards(
+        StakerInfo storage staker
+    ) internal returns (uint256 pendingReward) {
         if (isStakingDynamic) {
-            totalReward =
-                (staker.stakedAmount *
-                    (rewardPerToken - userRewardPerTokenPaid[msg.sender])) /
-                1 ether;
+            if (totalStaked > 0) {
+                (
+                    uint256 _pendingReward,
+                    uint256 newRewardPerToken
+                ) = _calculatePendingRewardDynamic(staker);
+                pendingReward = _pendingReward;
+                rewardPerToken = newRewardPerToken;
+                userRewardPerTokenPaid[msg.sender] = rewardPerToken;
+            }
+            lastUpdateTime = _lastApplicableTime();
         } else {
-            totalReward =
-                (staker.stakedAmount *
-                    staticInterestRate *
-                    secondsSinceLastReward) /
-                365 days /
-                1 ether;
+            pendingReward = _calculatePendingRewardStatic(staker);
         }
     }
 
     function viewPendingRewards(
         address _address
-    ) external view returns (uint256) {
+    ) external view returns (uint256 pendingRewards) {
         StakerInfo storage staker = stakers[_address];
-        return _calculatePendingReward(staker);
-    }
-
-    function _handleDynamicStakingState(
-        StakerInfo storage stakerInfo
-    ) private returns (uint rewards) {
-        if (totalStaked != 0) {
-            uint lastApplicableTime = _lastApplicableTime();
-            rewardPerToken +=
-                ((dynamicRewardsRate * (lastApplicableTime - lastUpdateTime)) *
-                    1 ether) /
-                totalStaked;
-            rewards =
-                (stakerInfo.stakedAmount *
-                    (rewardPerToken - userRewardPerTokenPaid[msg.sender])) /
-                1 ether;
-            userRewardPerTokenPaid[msg.sender] = rewardPerToken;
-            lastUpdateTime = lastApplicableTime;
+        if (isStakingDynamic) {
+            (pendingRewards, ) = _calculatePendingRewardDynamic(staker);
+        } else {
+            pendingRewards = _calculatePendingRewardStatic(staker);
         }
     }
 

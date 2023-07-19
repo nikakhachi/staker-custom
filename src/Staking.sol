@@ -5,8 +5,13 @@ import "openzeppelin-contracts-upgradeable/contracts/token/ERC20/IERC20Upgradeab
 import "openzeppelin-contracts-upgradeable/contracts/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
 import "openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
+import "openzeppelin-contracts-upgradeable/contracts/token/ERC20/extensions/ERC20PausableUpgradeable.sol";
 
-contract Staking is Initializable, OwnableUpgradeable {
+contract Staking is
+    Initializable,
+    OwnableUpgradeable,
+    ERC20PausableUpgradeable
+{
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
     event Staked(address indexed user, uint256 indexed amount);
@@ -38,6 +43,7 @@ contract Staking is Initializable, OwnableUpgradeable {
     ) external initializer {
         __Ownable_init();
         __Pausable_init();
+        __ERC20_init("Staking Token", "STK");
 
         token = _token;
         staticInterestRate = _staticInterestRate;
@@ -102,5 +108,21 @@ contract Staking is Initializable, OwnableUpgradeable {
                 365 days /
                 1 ether;
         }
+    }
+
+    function mint(uint256 _amount, address _address) external onlyOwner {
+        _mint(_address, _amount);
+    }
+
+    function burn(uint256 _amount) external onlyOwner {
+        _burn(msg.sender, _amount);
+    }
+
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
     }
 }

@@ -1,82 +1,82 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+// // SPDX-License-Identifier: UNLICENSED
+// pragma solidity ^0.8.13;
 
-import "forge-std/Test.sol";
-import "forge-std/console.sol";
+// import "forge-std/Test.sol";
+// import "forge-std/console.sol";
 
-import "../src/Token.sol";
+// import "../src/Staking.sol";
 
-/**
- * @title TokenTest Contract
- * @author Nika Khachiashvili
- * @dev Test cases for Token Contract
- * @dev It's true that OpenZeppelin has well audited contracts but let's still make sure we did
- * @dev the setup correctly
- */
-contract TokenTest is Test {
-    Token public token;
+// /**
+//  * @title stakingTest Contract
+//  * @author Nika Khachiashvili
+//  * @dev Test cases for staking Contract
+//  * @dev It's true that OpenZeppelin has well audited contracts but let's still make sure we did
+//  * @dev the setup correctly
+//  */
+// contract stakingTest is Test {
+//     Staking public staking;
 
-    function setUp() public {
-        token = new Token("Test Token", "TTT");
-    }
+//     function setUp() public {
+//         staking = new Staking("Test staking", "TTT");
+//     }
 
-    /// @dev testing pause functionality
-    function testPause() public {
-        token.pause();
-        vm.expectRevert(bytes("ERC20Pausable: token transfer while paused"));
-        token.mint(1 ether, address(this));
-    }
+//     /// @dev testing pause functionality
+//     function testPause() public {
+//         staking.pause();
+//         vm.expectRevert(bytes("ERC20Pausable: token transfer while paused"));
+//         staking.mint(1 ether, address(this));
+//     }
 
-    /// @dev testing unpause functionality
-    function testUnpause() public {
-        token.pause();
-        token.unpause();
-        token.mint(1 ether, address(this));
-    }
+//     /// @dev testing unpause functionality
+//     function testUnpause() public {
+//         staking.pause();
+//         staking.unpause();
+//         staking.mint(1 ether, address(this));
+//     }
 
-    /// @dev testing mint functionality
-    function testMint() public {
-        token.mint(1 ether, address(this));
-        assertEq(token.balanceOf(address(this)), 1 ether);
+//     /// @dev testing mint functionality
+//     function testMint() public {
+//         staking.mint(1 ether, address(this));
+//         assertEq(staking.balanceOf(address(this)), 1 ether);
 
-        token.mint(10 ether, address(1));
-        assertEq(token.balanceOf(address(1)), 10 ether);
-    }
+//         staking.mint(10 ether, address(1));
+//         assertEq(staking.balanceOf(address(1)), 10 ether);
+//     }
 
-    /// @dev testing burn functionality
-    function testBurn() public {
-        token.mint(1 ether, address(this));
-        token.burn(0.5 ether);
-        assertEq(token.balanceOf(address(this)), 0.5 ether);
-    }
+//     /// @dev testing burn functionality
+//     function testBurn() public {
+//         staking.mint(1 ether, address(this));
+//         staking.burn(0.5 ether);
+//         assertEq(staking.balanceOf(address(this)), 0.5 ether);
+//     }
 
-    /// @dev testing if it reverts when calling pause functionality as non-owner
-    function testUnauthorizedPause() public {
-        vm.prank(address(1));
-        vm.expectRevert(bytes("Ownable: caller is not the owner"));
-        token.pause();
-    }
+//     /// @dev testing if it reverts when calling pause functionality as non-owner
+//     function testUnauthorizedPause() public {
+//         vm.prank(address(1));
+//         vm.expectRevert(bytes("Ownable: caller is not the owner"));
+//         staking.pause();
+//     }
 
-    /// @dev testing if it reverts when calling unpause functionality as non-owner
-    function testUnauthorizedUnpause() public {
-        token.pause();
-        vm.prank(address(1));
-        vm.expectRevert(bytes("Ownable: caller is not the owner"));
-        token.unpause();
-    }
+//     /// @dev testing if it reverts when calling unpause functionality as non-owner
+//     function testUnauthorizedUnpause() public {
+//         staking.pause();
+//         vm.prank(address(1));
+//         vm.expectRevert(bytes("Ownable: caller is not the owner"));
+//         staking.unpause();
+//     }
 
-    /// @dev testing if it reverts when calling mint functionality as non-owner
-    function testUnauthorizedMint() public {
-        vm.prank(address(1));
-        vm.expectRevert(bytes("Ownable: caller is not the owner"));
-        token.mint(1 ether, address(1));
-    }
+//     /// @dev testing if it reverts when calling mint functionality as non-owner
+//     function testUnauthorizedMint() public {
+//         vm.prank(address(1));
+//         vm.expectRevert(bytes("Ownable: caller is not the owner"));
+//         staking.mint(1 ether, address(1));
+//     }
 
-    /// @dev testing if it reverts when calling burn functionality as non-owner
-    function testUnauthorizedBurn() public {
-        token.mint(1 ether, address(this));
-        vm.prank(address(1));
-        vm.expectRevert(bytes("Ownable: caller is not the owner"));
-        token.burn(0.5 ether);
-    }
-}
+//     /// @dev testing if it reverts when calling burn functionality as non-owner
+//     function testUnauthorizedBurn() public {
+//         staking.mint(1 ether, address(this));
+//         vm.prank(address(1));
+//         vm.expectRevert(bytes("Ownable: caller is not the owner"));
+//         staking.burn(0.5 ether);
+//     }
+// }

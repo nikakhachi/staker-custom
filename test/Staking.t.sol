@@ -143,6 +143,24 @@ contract StakingTest is Test {
         return (_amount * _interestRate * _interval) / 1 ether / 365 days;
     }
 
+    /// @dev Test staking when the contract is paused
+    function testStakeWhenPaused() public {
+        staking.pause();
+        vm.expectRevert(bytes("Pausable: paused"));
+        staking.stake(1 ether);
+    }
+
+    /// @dev Test withdrawing when the contract is paused
+    function testWithdrawWhenPaused() public {
+        uint256 amountToStake = INITIAL_TOKEN_SUPPLY;
+        token.approve(address(staking), amountToStake);
+        staking.stake(amountToStake);
+
+        staking.pause();
+        vm.expectRevert(bytes("Pausable: paused"));
+        staking.withdraw(amountToStake);
+    }
+
     /// @dev testing pause functionality
     function testPause() public {
         staking.pause();

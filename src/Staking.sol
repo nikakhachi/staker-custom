@@ -78,6 +78,7 @@ contract Staking is
 
         staker.stakedAmount -= _amount;
         totalStaked -= _amount;
+        staker.lastRewardTimestamp = block.timestamp;
 
         token.safeTransfer(msg.sender, _amount);
 

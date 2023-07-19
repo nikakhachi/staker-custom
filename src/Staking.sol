@@ -52,7 +52,7 @@ contract Staking is
         isStakingDynamic = _isStakingDynamic;
     }
 
-    function stake(uint256 _amount) external {
+    function stake(uint256 _amount) external whenNotPaused {
         StakerInfo storage staker = stakers[msg.sender];
 
         if (staker.stakedAmount > 0) {
@@ -70,7 +70,7 @@ contract Staking is
         emit Staked(msg.sender, _amount);
     }
 
-    function withdraw(uint256 _amount) external {
+    function withdraw(uint256 _amount) external whenNotPaused {
         StakerInfo storage staker = stakers[msg.sender];
 
         uint256 pendingReward = _calculatePendingReward(staker);

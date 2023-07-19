@@ -84,6 +84,12 @@ contract Staking is
         emit Withdrawn(msg.sender, _amount);
     }
 
+    function getStakerInfo(
+        address _address
+    ) external view returns (StakerInfo memory) {
+        return stakers[_address];
+    }
+
     function _calculatePendingReward(
         address _user
     ) internal view returns (uint256 totalReward) {

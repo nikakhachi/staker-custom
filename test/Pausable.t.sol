@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "./Staking.t.sol";
+/// @dev Doesn't matter if it imports Static or Dynamic, underlying Pausable mechanism is the same
+import "./StaticStaking.t.sol";
 
 /**
  * @title PausableTest Contract
  * @author Nika Khachiashvili
  * @dev Test cases for Staking Contract Pausable Actions
  */
-contract PausableTest is StakingTest {
+contract PausableTest is StaticStakingTest {
     /// @dev Test staking when the contract is paused
     function testStakeWhenPaused() public {
         staking.pause();

@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "./Staking.t.sol";
+/// @dev Doesn't matter if it imports Static or Dynamic, underlying Staking Token mechanism is the same
+import "./StaticStaking.t.sol";
 
 /**
  * @title StakingTokenTest Contract
  * @author Nika Khachiashvili
  * @dev Test cases for Staking Contract Token Actions
  */
-contract StakingTokenTest is StakingTest {
+contract StakingTokenTest is StaticStakingTest {
     /// @dev testing mint functionality
     function testMint() public {
         staking.mint(1 ether, address(this));

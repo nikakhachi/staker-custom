@@ -15,9 +15,9 @@ import "../src/Token.sol";
 contract StakingTest is Test {
     uint256 public constant INITIAL_TOKEN_SUPPLY = 1000 ether;
     uint256 public constant STATIC_INTEREST_RATE = 0.1 ether;
-    uint256 public constant DYNAMIC_REWARD_AMOUNT = 1 ether;
+    uint256 public constant DYNAMIC_REWARD_AMOUNT = 10000 ether;
     uint256 public constant DYNAMIC_REWARD_DURATION = 100 days;
-    bool public constant IS_DYNAMIC = false;
+    bool public constant IS_DYNAMIC = true;
 
     Staking public staking;
     Token public token;

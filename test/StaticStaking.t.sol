@@ -150,6 +150,32 @@ contract StaticStakingTest is Test {
         );
     }
 
+    function testGetRewardsStatic() public {
+        uint256 amountToStake = INITIAL_TOKEN_SUPPLY;
+        token.approve(address(staking), amountToStake);
+        staking.stake(amountToStake);
+
+        uint interval = 365 days;
+
+        skip(interval);
+
+        staking.getRewards(staking.viewPendingRewards(address(this)));
+
+        assertEq(
+            staking.balanceOf(address(this)),
+            (amountToStake * STATIC_INTEREST_RATE) / 1 ether
+        );
+
+        Staking.StakerInfo memory stakerInfo = staking.getStakerInfo(
+            address(this)
+        );
+
+        assertEq(stakerInfo.stakedAmount, amountToStake);
+        assertEq(stakerInfo.lastRewardTimestamp, block.timestamp);
+        assertEq(stakerInfo.rewardDebt, 0);
+        assertEq(staking.totalStaked(), amountToStake);
+    }
+
     function _calculateStaticRewards(
         uint256 _amount,
         uint256 _interval,

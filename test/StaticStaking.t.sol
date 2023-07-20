@@ -129,6 +129,7 @@ contract StaticStakingTest is Test {
         );
     }
 
+    /// @dev Testing the getRewards functionality when the staking is static
     function testGetRewardsStatic() public {
         uint256 amountToStake = INITIAL_TOKEN_SUPPLY;
         token.approve(address(staking), amountToStake);

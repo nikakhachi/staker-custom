@@ -221,4 +221,76 @@ contract StakingTest is Test {
         assertEq(stakerInfo2.lastRewardTimestamp, block.timestamp);
         assertEq(stakerInfo2.rewardDebt, (DYNAMIC_REWARD_AMOUNT * 1) / 4);
     }
+
+    /// @dev Testing the flow of staking/withdrawing and rewards for multiple stakers
+    /// @dev When 1 staker stakes initially and the 2nd staker stakes in the middle and hold them till the end
+    function testDynamicStakingFlowWith2StakersAdvanced() public {
+        /// @dev staker #1 Will stake 1 ether at the start and hold it till the end
+        /// @dev staker #2 Will stake 1 ether in the middle and hold it till the end
+        /// @dev staker #1 Will again stake, but now 8 ether in the middle andd hold it till the end
+        /// @dev If the rewards are 10 ether, in the first half staker #1 should earn 5 ether (maximum reward)
+        /// @dev and in the second half staker #2 will earn 0.5 ether and staker #1 will earn 4.5 ether
+        /// @dev So at the end staker #1 must have 9.5 ethers and staker #2 must have 0.5 ethers
+
+        address staker1 = address(1);
+        address staker2 = address(2);
+
+        token.transfer(staker1, 9 ether);
+        token.transfer(staker2, 1 ether);
+
+        vm.prank(staker1);
+        token.approve(address(staking), 1 ether);
+        vm.prank(staker1);
+        staking.stake(1 ether);
+
+        skip(DYNAMIC_REWARD_DURATION / 2);
+
+        assertEq(
+            staking.viewPendingRewards(staker1),
+            DYNAMIC_REWARD_AMOUNT / 2
+        );
+
+        vm.prank(staker2);
+        token.approve(address(staking), 1 ether);
+        vm.prank(staker2);
+        staking.stake(1 ether);
+
+        vm.prank(staker1);
+        token.approve(address(staking), 8 ether);
+        vm.prank(staker1);
+        staking.stake(8 ether);
+
+        Staking.StakerInfo memory stakerInfo1FirstHalf = staking.getStakerInfo(
+            staker1
+        );
+
+        skip(DYNAMIC_REWARD_DURATION / 2);
+
+        /// @dev We are adding reward debt because on second stake, the previous rewards are added to the reward debt automatically
+        assertEq(
+            staking.viewPendingRewards(staker1) +
+                stakerInfo1FirstHalf.rewardDebt,
+            (DYNAMIC_REWARD_AMOUNT * 95) / 100
+        );
+        assertEq(
+            staking.viewPendingRewards(staker2),
+            (DYNAMIC_REWARD_AMOUNT * 5) / 100
+        );
+
+        vm.prank(staker1);
+        staking.withdraw(9 ether);
+        vm.prank(staker2);
+        staking.withdraw(1 ether);
+
+        Staking.StakerInfo memory stakerInfo1 = staking.getStakerInfo(staker1);
+        Staking.StakerInfo memory stakerInfo2 = staking.getStakerInfo(staker2);
+
+        assertEq(stakerInfo1.stakedAmount, 0);
+        assertEq(stakerInfo1.lastRewardTimestamp, block.timestamp);
+        assertEq(stakerInfo1.rewardDebt, (DYNAMIC_REWARD_AMOUNT * 95) / 100);
+
+        assertEq(stakerInfo2.stakedAmount, 0);
+        assertEq(stakerInfo2.lastRewardTimestamp, block.timestamp);
+        assertEq(stakerInfo2.rewardDebt, (DYNAMIC_REWARD_AMOUNT * 5) / 100);
+    }
 }

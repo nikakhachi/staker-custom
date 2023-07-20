@@ -38,8 +38,8 @@ contract Staking is
 
     /// @dev Required variables for dynamic staking
     mapping(address => uint) public userRewardPerTokenPaid;
-    uint public rewardPerToken;
-    uint public lastUpdateTime; /// @dev Last timestamp when someone staked or withdrew
+    uint256 public rewardPerToken;
+    uint256 public lastUpdateTime; /// @dev Last timestamp when someone staked or withdrew
 
     function initialize(
         IERC20Upgradeable _token,
@@ -89,8 +89,8 @@ contract Staking is
     }
 
     function setDynamicRewards(
-        uint _amount,
-        uint _duration
+        uint256 _amount,
+        uint256 _duration
     ) external onlyOwner {
         require(dynamicRewardsFinishAt < block.timestamp); /// @dev Make sure contract isn't giving rewards anymore
         require(_amount > 0); /// @dev Make sure rewards amount is more than 0
@@ -99,7 +99,7 @@ contract Staking is
         lastUpdateTime = block.timestamp;
     }
 
-    function setStaticRewards(uint _staticInterestRate) external onlyOwner {
+    function setStaticRewards(uint256 _staticInterestRate) external onlyOwner {
         require(_staticInterestRate > 0);
         staticInterestRate = _staticInterestRate;
     }

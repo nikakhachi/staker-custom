@@ -61,11 +61,7 @@ contract Staking is
             require(staticInterestRate > 0);
         }
 
-        uint256 pendingReward = _handleRewards(staker, _isStakingDynamic);
-
-        staker.rewardDebt += pendingReward;
-
-        staker.lastRewardTimestamp = block.timestamp;
+        _handleRewards(staker, _isStakingDynamic);
 
         token.safeTransferFrom(msg.sender, address(this), _amount);
 
@@ -79,13 +75,10 @@ contract Staking is
         StakerInfo storage staker = stakers[msg.sender];
 
         bool _isStakingDynamic = isStakingDynamic;
-        uint256 pendingReward = _handleRewards(staker, _isStakingDynamic);
-
-        staker.rewardDebt += pendingReward;
+        _handleRewards(staker, _isStakingDynamic);
 
         staker.stakedAmount -= _amount;
         totalStaked -= _amount;
-        staker.lastRewardTimestamp = block.timestamp;
 
         token.safeTransfer(msg.sender, _amount);
 
@@ -161,6 +154,8 @@ contract Staking is
         } else {
             pendingReward = _calculatePendingRewardStatic(staker);
         }
+        staker.rewardDebt += pendingReward;
+        staker.lastRewardTimestamp = block.timestamp;
     }
 
     function viewPendingRewards(

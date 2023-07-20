@@ -56,6 +56,7 @@ contract Staking is
         dynamicRewardsRate = _dynamicRewardsAmount / _dynamicRewardsDuration;
         dynamicRewardsFinishAt = block.timestamp + _dynamicRewardsDuration;
         isStakingDynamic = _isStakingDynamic;
+        lastUpdateTime = block.timestamp;
     }
 
     function stake(uint256 _amount) external whenNotPaused {

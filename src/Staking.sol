@@ -42,29 +42,24 @@ contract Staking is
 
     function initialize(
         IERC20Upgradeable _token,
-        uint256 _staticInterestRate,
-        uint256 _dynamicRewardsAmount,
-        uint256 _dynamicRewardsDuration,
         bool _isStakingDynamic
     ) external initializer {
         __Ownable_init();
         __Pausable_init();
         __ERC20_init("Staking Token", "STK");
-
         token = _token;
-        staticInterestRate = _staticInterestRate;
-        dynamicRewardsRate = _dynamicRewardsAmount / _dynamicRewardsDuration;
-        dynamicRewardsFinishAt = block.timestamp + _dynamicRewardsDuration;
         isStakingDynamic = _isStakingDynamic;
-        lastUpdateTime = block.timestamp;
     }
 
     function stake(uint256 _amount) external whenNotPaused {
         StakerInfo storage staker = stakers[msg.sender];
 
         bool _isStakingDynamic = isStakingDynamic;
-        if (_isStakingDynamic)
+        if (_isStakingDynamic) {
             require(block.timestamp < dynamicRewardsFinishAt);
+        } else {
+            require(staticInterestRate > 0);
+        }
 
         uint256 pendingReward = _handleRewards(staker, _isStakingDynamic);
 
@@ -97,12 +92,20 @@ contract Staking is
         emit Withdrawn(msg.sender, _amount);
     }
 
-    function setRewards(uint _amount, uint _duration) external onlyOwner {
+    function setDynamicRewards(
+        uint _amount,
+        uint _duration
+    ) external onlyOwner {
         require(dynamicRewardsFinishAt < block.timestamp); /// @dev Make sure contract isn't giving rewards anymore
         require(_amount > 0); /// @dev Make sure rewards amount is more than 0
         dynamicRewardsFinishAt = block.timestamp + _duration;
         dynamicRewardsRate = _amount / _duration;
         lastUpdateTime = block.timestamp;
+    }
+
+    function setStaticRewards(uint _staticInterestRate) external onlyOwner {
+        require(_staticInterestRate > 0);
+        staticInterestRate = _staticInterestRate;
     }
 
     function getStakerInfo(

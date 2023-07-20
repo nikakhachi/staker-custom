@@ -26,12 +26,10 @@ contract StakingTest is Test {
     function setUp() public {
         staking = new Staking();
         token = new Token("Test Token", "TST", INITIAL_TOKEN_SUPPLY);
-        staking.initialize(
-            IERC20Upgradeable(address(token)),
-            STATIC_INTEREST_RATE,
+        staking.initialize(IERC20Upgradeable(address(token)), IS_DYNAMIC);
+        staking.setDynamicRewards(
             DYNAMIC_REWARD_AMOUNT,
-            DYNAMIC_REWARD_DURATION,
-            IS_DYNAMIC
+            DYNAMIC_REWARD_DURATION
         );
     }
 

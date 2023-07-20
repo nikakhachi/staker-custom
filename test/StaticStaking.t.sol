@@ -25,13 +25,8 @@ contract StaticStakingTest is Test {
     function setUp() public {
         staking = new Staking();
         token = new Token("Test Token", "TST", INITIAL_TOKEN_SUPPLY);
-        staking.initialize(
-            IERC20Upgradeable(address(token)),
-            STATIC_INTEREST_RATE,
-            DYNAMIC_REWARD_AMOUNT,
-            DYNAMIC_REWARD_DURATION,
-            IS_DYNAMIC
-        );
+        staking.initialize(IERC20Upgradeable(address(token)), IS_DYNAMIC);
+        staking.setStaticRewards(STATIC_INTEREST_RATE);
     }
 
     /// @dev Test staking when user hasn't previously staked and the staking is static

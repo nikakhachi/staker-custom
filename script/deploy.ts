@@ -17,7 +17,14 @@ const main = async () => {
 
   const stakingAddress = await staking.getAddress();
 
-  console.log(`Staking Deployed on Address: ${stakingAddress}`);
+  console.log(`Staking Proxy Deployed on Address: ${stakingAddress}`);
+
+  const StakingV2Factory = await ethers.getContractFactory("StakingV2");
+  const stakingV2 = await upgrades.upgradeProxy(stakingAddress, StakingV2Factory);
+
+  await stakingV2.waitForDeployment();
+
+  console.log(`The Implementation has been upgraded to ${await stakingV2.version()}`);
 };
 
 main().catch((error) => {

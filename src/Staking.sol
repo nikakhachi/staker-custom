@@ -30,6 +30,7 @@ contract Staking is
     uint256 public dynamicRewardsRate;
     uint256 public dynamicRewardsFinishAt;
     bool public isStakingDynamic;
+    bool public isAutoCompound;
 
     mapping(address => StakerInfo) public stakers;
 
@@ -42,13 +43,15 @@ contract Staking is
 
     function initialize(
         IERC20Upgradeable _token,
-        bool _isStakingDynamic
+        bool _isStakingDynamic,
+        bool _isAutoCompound
     ) external initializer {
         __Ownable_init();
         __Pausable_init();
         __ERC20_init("Staking Token", "STK");
         token = _token;
         isStakingDynamic = _isStakingDynamic;
+        isAutoCompound = _isAutoCompound;
     }
 
     function stake(uint256 _amount) external whenNotPaused {
@@ -154,7 +157,16 @@ contract Staking is
         } else {
             pendingReward = _calculatePendingRewardStatic(staker);
         }
-        staker.rewardDebt += pendingReward;
+
+        /// @dev Since the rewards are given out in another token than the staking token,
+        /// @dev We will just mint them. If it was the same token as staking,
+        /// @dev We would add it to the stakedAmount of staker and also totalStaked so extra
+        /// @dev reward can be generated on it
+        if (isAutoCompound) {
+            _mint(msg.sender, pendingReward);
+        } else {
+            staker.rewardDebt += pendingReward;
+        }
         staker.lastRewardTimestamp = block.timestamp;
     }
 

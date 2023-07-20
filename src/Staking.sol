@@ -6,6 +6,7 @@ import "openzeppelin-contracts-upgradeable/contracts/token/ERC20/utils/SafeERC20
 import "openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
 import "openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
 import "openzeppelin-contracts-upgradeable/contracts/token/ERC20/extensions/ERC20PausableUpgradeable.sol";
+import "openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "./Math.sol";
 
 /// @title Staking Contract
@@ -13,7 +14,8 @@ import "./Math.sol";
 contract Staking is
     Initializable,
     OwnableUpgradeable,
-    ERC20PausableUpgradeable
+    ERC20PausableUpgradeable,
+    UUPSUpgradeable
 {
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
@@ -262,4 +264,7 @@ contract Staking is
     function unpause() external onlyOwner {
         _unpause();
     }
+
+    /// @dev Function for upgrading the contract
+    function _authorizeUpgrade(address) internal override onlyOwner {}
 }

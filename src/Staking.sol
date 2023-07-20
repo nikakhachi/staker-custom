@@ -135,7 +135,7 @@ contract Staking is
             totalStaked;
         totalReward =
             (staker.stakedAmount *
-                (rewardPerToken - userRewardPerTokenPaid[msg.sender])) /
+                (newRewardPerToken - userRewardPerTokenPaid[msg.sender])) /
             1 ether;
     }
 

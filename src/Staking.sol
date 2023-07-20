@@ -101,6 +101,45 @@ contract Staking is
         emit Withdrawn(msg.sender, _amount);
     }
 
+    /// @notice View the pending rewards of the provided address
+    /// @param _address The address of the staker
+    /// @return pendingRewards The pending rewards
+    function viewPendingRewards(
+        address _address
+    ) external view returns (uint256 pendingRewards) {
+        StakerInfo storage staker = stakers[_address];
+        if (isStakingDynamic) {
+            (pendingRewards, ) = _calculatePendingRewardDynamic(
+                staker,
+                _address
+            );
+        } else {
+            pendingRewards = _calculatePendingRewardStatic(staker);
+        }
+    }
+
+    /// @notice Claim the rewards in wallet
+    /// @param _amount The amount of tokens to be claimed
+    function getRewards(uint256 _amount) external {
+        StakerInfo storage staker = stakers[msg.sender];
+
+        bool _isStakingDynamic = isStakingDynamic;
+        _handleRewards(staker, _isStakingDynamic);
+
+        staker.rewardDebt -= _amount;
+
+        _mint(msg.sender, _amount);
+    }
+
+    /// @notice Get the staker info
+    /// @param _address The address of the staker
+    /// @return The staker info
+    function getStakerInfo(
+        address _address
+    ) external view returns (StakerInfo memory) {
+        return stakers[_address];
+    }
+
     /// @notice Owner's function for setting rewards if the contract is dynamic
     /// @param _amount The amount of tokens to be given out
     /// @param _duration The duration of giving out the rewards
@@ -119,52 +158,6 @@ contract Staking is
     function setStaticRewards(uint256 _staticInterestRate) external onlyOwner {
         require(_staticInterestRate > 0);
         staticInterestRate = _staticInterestRate;
-    }
-
-    /// @notice Get the staker info
-    /// @param _address The address of the staker
-    /// @return The staker info
-    function getStakerInfo(
-        address _address
-    ) external view returns (StakerInfo memory) {
-        return stakers[_address];
-    }
-
-    /// @dev calculating the pending rewards if the contract is static
-    /// @param stakerInfo The staker info
-    /// @return totalReward The pending rewards
-    function _calculatePendingRewardStatic(
-        StakerInfo storage stakerInfo
-    ) internal view returns (uint256 totalReward) {
-        uint256 secondsSinceLastReward = block.timestamp -
-            stakerInfo.lastRewardTimestamp;
-
-        totalReward =
-            (stakerInfo.stakedAmount *
-                staticInterestRate *
-                secondsSinceLastReward) /
-            365 days /
-            1 ether;
-    }
-
-    /// @dev calculating the pending rewards and the new reward per token if the contract is dynamic
-    /// @param stakerInfo The staker info
-    /// @param _staker The address of the staker
-    /// @return totalReward The pending rewards
-    /// @return newRewardPerToken The pending rewards
-    function _calculatePendingRewardDynamic(
-        StakerInfo storage stakerInfo,
-        address _staker
-    ) internal view returns (uint256 totalReward, uint256 newRewardPerToken) {
-        newRewardPerToken =
-            rewardPerToken +
-            ((dynamicRewardsRate * (_lastApplicableTime() - lastUpdateTime)) *
-                1 ether) /
-            totalStaked;
-        totalReward =
-            (stakerInfo.stakedAmount *
-                (newRewardPerToken - userRewardPerTokenPaid[_staker])) /
-            1 ether;
     }
 
     /// @dev Calculates the rewards and handles them (updating states and transfering them if autocompound is enabled)
@@ -204,34 +197,41 @@ contract Staking is
         staker.lastRewardTimestamp = block.timestamp;
     }
 
-    /// @notice View the pending rewards of the provided address
-    /// @param _address The address of the staker
-    /// @return pendingRewards The pending rewards
-    function viewPendingRewards(
-        address _address
-    ) external view returns (uint256 pendingRewards) {
-        StakerInfo storage staker = stakers[_address];
-        if (isStakingDynamic) {
-            (pendingRewards, ) = _calculatePendingRewardDynamic(
-                staker,
-                _address
-            );
-        } else {
-            pendingRewards = _calculatePendingRewardStatic(staker);
-        }
+    /// @dev calculating the pending rewards if the contract is static
+    /// @param stakerInfo The staker info
+    /// @return totalReward The pending rewards
+    function _calculatePendingRewardStatic(
+        StakerInfo storage stakerInfo
+    ) internal view returns (uint256 totalReward) {
+        uint256 secondsSinceLastReward = block.timestamp -
+            stakerInfo.lastRewardTimestamp;
+
+        totalReward =
+            (stakerInfo.stakedAmount *
+                staticInterestRate *
+                secondsSinceLastReward) /
+            365 days /
+            1 ether;
     }
 
-    /// @notice Claim the rewards in wallet
-    /// @param _amount The amount of tokens to be claimed
-    function getRewards(uint256 _amount) external {
-        StakerInfo storage staker = stakers[msg.sender];
-
-        bool _isStakingDynamic = isStakingDynamic;
-        _handleRewards(staker, _isStakingDynamic);
-
-        staker.rewardDebt -= _amount;
-
-        _mint(msg.sender, _amount);
+    /// @dev calculating the pending rewards and the new reward per token if the contract is dynamic
+    /// @param stakerInfo The staker info
+    /// @param _staker The address of the staker
+    /// @return totalReward The pending rewards
+    /// @return newRewardPerToken The pending rewards
+    function _calculatePendingRewardDynamic(
+        StakerInfo storage stakerInfo,
+        address _staker
+    ) internal view returns (uint256 totalReward, uint256 newRewardPerToken) {
+        newRewardPerToken =
+            rewardPerToken +
+            ((dynamicRewardsRate * (_lastApplicableTime() - lastUpdateTime)) *
+                1 ether) /
+            totalStaked;
+        totalReward =
+            (stakerInfo.stakedAmount *
+                (newRewardPerToken - userRewardPerTokenPaid[_staker])) /
+            1 ether;
     }
 
     /// @dev When calculating rewards, we want to don't want to include the current timestamp

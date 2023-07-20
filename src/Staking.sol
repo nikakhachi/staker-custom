@@ -112,13 +112,13 @@ contract Staking is
     }
 
     function _calculatePendingRewardStatic(
-        StakerInfo storage staker
+        StakerInfo storage stakerInfo
     ) internal view returns (uint256 totalReward) {
         uint256 secondsSinceLastReward = block.timestamp -
-            staker.lastRewardTimestamp;
+            stakerInfo.lastRewardTimestamp;
 
         totalReward =
-            (staker.stakedAmount *
+            (stakerInfo.stakedAmount *
                 staticInterestRate *
                 secondsSinceLastReward) /
             365 days /
@@ -126,7 +126,8 @@ contract Staking is
     }
 
     function _calculatePendingRewardDynamic(
-        StakerInfo storage staker
+        StakerInfo storage stakerInfo,
+        address _staker
     ) internal view returns (uint256 totalReward, uint256 newRewardPerToken) {
         newRewardPerToken =
             rewardPerToken +
@@ -134,8 +135,8 @@ contract Staking is
                 1 ether) /
             totalStaked;
         totalReward =
-            (staker.stakedAmount *
-                (newRewardPerToken - userRewardPerTokenPaid[msg.sender])) /
+            (stakerInfo.stakedAmount *
+                (newRewardPerToken - userRewardPerTokenPaid[_staker])) /
             1 ether;
     }
 
@@ -148,7 +149,7 @@ contract Staking is
                 (
                     uint256 _pendingReward,
                     uint256 newRewardPerToken
-                ) = _calculatePendingRewardDynamic(staker);
+                ) = _calculatePendingRewardDynamic(staker, msg.sender);
                 pendingReward = _pendingReward;
                 rewardPerToken = newRewardPerToken;
                 userRewardPerTokenPaid[msg.sender] = rewardPerToken;
@@ -164,7 +165,10 @@ contract Staking is
     ) external view returns (uint256 pendingRewards) {
         StakerInfo storage staker = stakers[_address];
         if (isStakingDynamic) {
-            (pendingRewards, ) = _calculatePendingRewardDynamic(staker);
+            (pendingRewards, ) = _calculatePendingRewardDynamic(
+                staker,
+                _address
+            );
         } else {
             pendingRewards = _calculatePendingRewardStatic(staker);
         }

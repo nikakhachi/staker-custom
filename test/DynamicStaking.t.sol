@@ -11,6 +11,7 @@ import "../src/Token.sol";
  * @title StakingTest Contract
  * @author Nika Khachiashvili
  * @dev Test cases for Staking Contract
+ * @dev IMPORTANT: These test cases aren't ready for production use, because not all the edge, tiny very specific cases are covered
  */
 contract StakingTest is Test {
     uint256 public constant INITIAL_TOKEN_SUPPLY = 1000 ether;
@@ -106,5 +107,68 @@ contract StakingTest is Test {
         assertEq(stakerInfo2.stakedAmount, 0);
         assertEq(stakerInfo2.lastRewardTimestamp, block.timestamp);
         assertEq(stakerInfo2.rewardDebt, DYNAMIC_REWARD_AMOUNT / 2);
+    }
+
+    /// @dev Testing the flow of staking/withdrawing and rewards for multiple stakers
+    /// @dev When 1 staker stakes initially and the 2nd staker stakes in the middle and hold them till the end
+    function testDynamicStakingFlowWith2Stakers() public {
+        /// @dev Both of the stakers will stake 1 ether;
+        /// @dev staker #1 Will stake it at the start and hold it till the end
+        /// @dev staker #2 Will stake it ni the middle and hold it till the end
+        /// @dev meaning that by the middle, staker #1 will have maximum rewards earned which is total rewards / 2, because he was only staker
+        /// @dev meanwhile during the other half, there are both stakers, so the rewards will be split between them
+        /// @dev If the rewards are 10 ether, in the first half staker #1 should earn 5 ether (maximum reward)
+        /// @dev and in the second half stakers should split the rewards and earn 2.5-2.5 ethers each
+        /// @dev So at the end staker #1 must have 7.5 ethers and staker #2 must have 2.5 ethers
+
+        address staker1 = address(1);
+        address staker2 = address(2);
+        uint256 amountToStake = 1 ether;
+        token.transfer(staker1, amountToStake);
+        token.transfer(staker2, amountToStake);
+
+        vm.prank(staker1);
+        token.approve(address(staking), amountToStake);
+        vm.prank(staker1);
+        staking.stake(amountToStake);
+
+        skip(DYNAMIC_REWARD_DURATION / 2);
+
+        assertEq(
+            staking.viewPendingRewards(staker1),
+            DYNAMIC_REWARD_AMOUNT / 2
+        );
+
+        vm.prank(staker2);
+        token.approve(address(staking), amountToStake);
+        vm.prank(staker2);
+        staking.stake(amountToStake);
+
+        skip(DYNAMIC_REWARD_DURATION / 2);
+
+        assertEq(
+            staking.viewPendingRewards(staker1),
+            (DYNAMIC_REWARD_AMOUNT * 3) / 4
+        );
+        assertEq(
+            staking.viewPendingRewards(staker2),
+            (DYNAMIC_REWARD_AMOUNT * 1) / 4
+        );
+
+        vm.prank(staker1);
+        staking.withdraw(amountToStake);
+        vm.prank(staker2);
+        staking.withdraw(amountToStake);
+
+        Staking.StakerInfo memory stakerInfo1 = staking.getStakerInfo(staker1);
+        Staking.StakerInfo memory stakerInfo2 = staking.getStakerInfo(staker2);
+
+        assertEq(stakerInfo1.stakedAmount, 0);
+        assertEq(stakerInfo1.lastRewardTimestamp, block.timestamp);
+        assertEq(stakerInfo1.rewardDebt, (DYNAMIC_REWARD_AMOUNT * 3) / 4);
+
+        assertEq(stakerInfo2.stakedAmount, 0);
+        assertEq(stakerInfo2.lastRewardTimestamp, block.timestamp);
+        assertEq(stakerInfo2.rewardDebt, (DYNAMIC_REWARD_AMOUNT * 1) / 4);
     }
 }

@@ -7,6 +7,8 @@ import "openzeppelin/token/ERC20/ERC20.sol";
  * @title Token Contract
  * @author Nika Khachiashvili
  * @dev A basic ERC20 token contract.
+ * @dev IMPORTANT: This token contract IS NOT the one from the Challenge.
+ * @dev IMPORTANT: The ERC20 Contract that is described in the tech challenge is implemented in Staking.sol itself
  */
 contract Token is ERC20 {
     /**

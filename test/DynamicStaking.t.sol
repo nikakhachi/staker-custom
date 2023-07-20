@@ -34,7 +34,7 @@ contract StakingTest is Test {
         );
     }
 
-    /// @dev Test rewards for a staker if only 1 staker is present from the start to the end
+    /// @dev Test stake/withdraw and rewards for a staker if only 1 staker is present from the start to the end
     function testDynamicStakingFlowWithOneStaker() public {
         uint256 amountToStake = INITIAL_TOKEN_SUPPLY;
         token.approve(address(staking), amountToStake);
@@ -53,9 +53,19 @@ contract StakingTest is Test {
             staking.viewPendingRewards(address(this)),
             DYNAMIC_REWARD_AMOUNT
         );
+
+        staking.withdraw(amountToStake);
+
+        Staking.StakerInfo memory stakerInfo = staking.getStakerInfo(
+            address(this)
+        );
+
+        assertEq(stakerInfo.stakedAmount, 0);
+        assertEq(stakerInfo.lastRewardTimestamp, block.timestamp);
+        assertEq(stakerInfo.rewardDebt, DYNAMIC_REWARD_AMOUNT);
     }
 
-    /// @dev Test rewards for a 2 concurrent stakers if only 2 stakers are present from the start to the end
+    /// @dev Test stake/withdraw and rewards for 2 concurrent stakers if only 2 stakers are present from the start to the end
     function testDynamicStakingFlowWithTwoConcurrentStaker() public {
         uint256 amountToStake = 1 ether;
         address staker2 = address(1);
@@ -79,5 +89,22 @@ contract StakingTest is Test {
             staking.viewPendingRewards(staker2),
             DYNAMIC_REWARD_AMOUNT / 2
         );
+
+        staking.withdraw(amountToStake);
+        vm.prank(staker2);
+        staking.withdraw(amountToStake);
+
+        Staking.StakerInfo memory stakerInfo1 = staking.getStakerInfo(
+            address(this)
+        );
+        Staking.StakerInfo memory stakerInfo2 = staking.getStakerInfo(staker2);
+
+        assertEq(stakerInfo1.stakedAmount, 0);
+        assertEq(stakerInfo1.lastRewardTimestamp, block.timestamp);
+        assertEq(stakerInfo1.rewardDebt, DYNAMIC_REWARD_AMOUNT / 2);
+
+        assertEq(stakerInfo2.stakedAmount, 0);
+        assertEq(stakerInfo2.lastRewardTimestamp, block.timestamp);
+        assertEq(stakerInfo2.rewardDebt, DYNAMIC_REWARD_AMOUNT / 2);
     }
 }

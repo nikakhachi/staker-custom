@@ -172,6 +172,17 @@ contract Staking is
         }
     }
 
+    function getRewards(uint256 _amount) external {
+        StakerInfo storage staker = stakers[msg.sender];
+
+        bool _isStakingDynamic = isStakingDynamic;
+        _handleRewards(staker, _isStakingDynamic);
+
+        staker.rewardDebt -= _amount;
+
+        _mint(msg.sender, _amount);
+    }
+
     /// @dev When calculating rewards, we want to don't want to include the current timestamp
     /// @dev in the calculations if the contract isn't giving out rewards anymore.
     /// @dev Returns the last applicable time based on the current time and the finish time of giving rewards.

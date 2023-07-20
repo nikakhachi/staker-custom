@@ -64,7 +64,7 @@ contract Staking is
 
         bool _isStakingDynamic = isStakingDynamic;
         if (_isStakingDynamic)
-            require(block.timestamp > dynamicRewardsFinishAt);
+            require(block.timestamp < dynamicRewardsFinishAt);
 
         uint256 pendingReward = _handleRewards(staker, _isStakingDynamic);
 

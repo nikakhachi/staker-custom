@@ -61,7 +61,11 @@ contract Staking is
     function stake(uint256 _amount) external whenNotPaused {
         StakerInfo storage staker = stakers[msg.sender];
 
-        uint256 pendingReward = _handleRewards(staker);
+        bool _isStakingDynamic = isStakingDynamic;
+        if (_isStakingDynamic)
+            require(block.timestamp > dynamicRewardsFinishAt);
+
+        uint256 pendingReward = _handleRewards(staker, _isStakingDynamic);
 
         staker.rewardDebt += pendingReward;
 
@@ -78,7 +82,8 @@ contract Staking is
     function withdraw(uint256 _amount) external whenNotPaused {
         StakerInfo storage staker = stakers[msg.sender];
 
-        uint256 pendingReward = _handleRewards(staker);
+        bool _isStakingDynamic = isStakingDynamic;
+        uint256 pendingReward = _handleRewards(staker, _isStakingDynamic);
 
         staker.rewardDebt += pendingReward;
 
@@ -134,9 +139,10 @@ contract Staking is
     }
 
     function _handleRewards(
-        StakerInfo storage staker
+        StakerInfo storage staker,
+        bool _isStakingDynamic
     ) internal returns (uint256 pendingReward) {
-        if (isStakingDynamic) {
+        if (_isStakingDynamic) {
             if (totalStaked > 0) {
                 (
                     uint256 _pendingReward,

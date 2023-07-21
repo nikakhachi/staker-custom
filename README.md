@@ -2,13 +2,13 @@
 
 This smart contract implements an upgradeable staking contract, which can be set to dynamic/static by the deployer, where users can deposit their assets and earn interest.
 
+The development tool used is the Foundry where the contracts and the tests are written, and then there's hardhat integrated which is used for writing the deployment and upgrade scripts.
+
 ## Table of Contents
 
 - [Features](#features)
-- [Stack](#stack)
-- [Usage](#usage)
-
-## Stack
+- [Testing](#testing)
+- [Deploying](#deploying)
 
 ## Features
 
@@ -34,18 +34,20 @@ This smart contract implements an upgradeable staking contract, which can be set
 
 - **_unpause_** - Owners function to unpause the contract
 
-## Usage
+## Testing
+
+To run the tests, you will have to do the following
 
 1. Clone this repository to your local machine.
-2. Install the project dependencies by running `forge install && npm install` in the root directory.
-3. Compile the files with `forge compile`.
-4. Create a new branch for your changes: `git checkout -b my-new-feature`.
-5. Make the necessary modifications and additions.
-6. Test Smart Contract with `forge test` in the root directory.
-7. Commit and push your changes: `git commit -m 'Add some feature' && git push origin my-new-feature`.
-8. Submit a pull request detailing your changes and their benefits.
+2. Run `forge install`.
+3. Run `forge test`.
 
-If you would like to deploy a smart contract on your local machine do the following:
+## Deploying
 
-1. `npx hardhat node` to run a local node.
-2. Deploy the smart contract with ` npx hardhat run script/deploy.ts --network localhost`
+To deploy the contract, you will have to do the following
+
+1. Clone this repository to your local machine.
+2. Run `forge install && npm install`.
+3. Deploy the smart contract with ` npx hardhat run script/deploy.ts --network {network name}`
+
+If you would like to deploy it locally, make sure to run `npx hardhat node` before the 3rd step, and deploy the smart contract with `localhost` as the "network name"

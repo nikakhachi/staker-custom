@@ -1,8 +1,14 @@
 # Custom Staking Smart Contract
 
-This smart contract implements an upgradeable staking contract, which can be set to dynamic/static by the deployer, where users can deposit their assets and earn interest.
+This smart contract implements an upgradeable (UUPS Proxy pattern) staking contract, which can be set to dynamic/static by the deployer, where users can deposit their assets and earn interest.
 
 The development tool used is the Foundry where the contracts and the tests are written, and then there's hardhat integrated which is used for writing the deployment and upgrade scripts.
+
+PolygonScan links:
+[Proxy](https://mumbai.polygonscan.com/address/0x22f68ab2f53e4eb0f8797cd5050950c42ab6ae4c) |
+[Version 1 Implementation](https://mumbai.polygonscan.com/address/0xae2254f7c069c9b84393b36d78d49fda6545e979) |
+[Version 2 Implementation](https://mumbai.polygonscan.com/address/0x29a645b06d6b8178ac29a2cc892ce74335a2bf93) |
+[ERC20](https://mumbai.polygonscan.com/address/0x82ec67fc81398b91c73064efeed4621e336ba027)
 
 ## Table of Contents
 

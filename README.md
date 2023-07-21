@@ -35,13 +35,15 @@ PolygonScan links:
 
 - **_mint_** - Owners function to mint the specified amount of tokens to any address
 
-- **_burn_** - Owners function to burn their tokens. Owner can't burn others tokens with this function
+- **_burn_** - Owners function to burn their tokens. The owner can't burn other's tokens with this function
 
 - **_pause_** - Owners function to pause the contract
 
 - **_unpause_** - Owners function to unpause the contract
 
 ## Testing
+
+Tests are written to cover as many scenarios as possible. Some tests are fuzz tests and some of them are not. Because of that some tests are not fuzz tests. This should never happen in production-ready code!
 
 To run the tests, you will have to do the following
 

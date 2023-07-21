@@ -46,7 +46,10 @@ To run the tests, you will have to do the following
 
 1. Clone this repository to your local machine.
 2. Run `forge install`.
-3. Run `forge test` (this will also automatically compile the contracts).
+3. Run `forge build`.
+4. Run `forge test`.
+
+OR, you can just run `forge test`, which will automatically install dependencies and compile the contracts.
 
 ## Deploying
 

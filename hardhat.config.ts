@@ -6,6 +6,12 @@ import "dotenv/config";
 
 const config = {
   solidity: "0.8.19",
+  settings: {
+    optimizer: {
+      enabled: true,
+      runs: 20,
+    },
+  },
   networks: {
     mumbai: {
       chainId: 80001,

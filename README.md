@@ -1,6 +1,6 @@
 # Custom Staking Smart Contract
 
-This smart contract implements an upgradeable (UUPS Proxy pattern) staking contract, which can be set to dynamic/static by the deployer, where users can deposit their assets and earn interest.
+This smart contract implements an upgradeable (UUPS Proxy pattern) staking contract, which can be set to dynamic/static by the deployer, where users can deposit their assets and earn rewards.
 
 The development tool used is the Foundry where the contracts and the tests are written, and then there's hardhat integrated which is used for writing the deployment and upgrade scripts.
 

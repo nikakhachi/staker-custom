@@ -48,6 +48,9 @@ To deploy the contract, you will have to do the following
 
 1. Clone this repository to your local machine.
 2. Run `forge install && npm install`.
-3. Deploy the smart contract with ` npx hardhat run script/deploy.ts --network {network name}`
+3. Create the `.env` file based on the `.env.example`.
+4. Deploy the smart contract with ` npx hardhat run script/deploy.ts --network {network name}`
+
+Please note that if you would like to deploy smart contracts on a network other than Mumbai, you will have to change the configuration in the `hardhat.config.ts` and even update the `.env` variable names
 
 If you would like to deploy it locally, make sure to run `npx hardhat node` before the 3rd step, and deploy the smart contract with `localhost` as the "network name"

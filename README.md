@@ -15,6 +15,7 @@ PolygonScan links:
 - [Features](#features)
 - [Testing](#testing)
 - [Deploying](#deploying)
+- [To Do](#todo)
 
 ## Features
 
@@ -63,3 +64,9 @@ To deploy the contract, you will have to do the following
 Please note that if you would like to deploy smart contracts on a network other than Mumbai, you will have to change the configuration in the `hardhat.config.ts` and even update the `.env` variable names
 
 If you would like to deploy it locally, make sure to run `npx hardhat node` before the 3rd step, and deploy the smart contract with `localhost` as the "network name"
+
+## ToDo
+
+You would notice that there are a `MyGovernor.sol` contract and `TimeLock.sol` contracts in the `src/governance` folder, which aren't used anywhere. I've added these files as sample files for future use for governance. 
+
+The rewards token is the token of the Staking contract, so it would be nice to see the governance on the implementation upgrade. If there's a new version, the staking token holders would vote if they want to upgrade the implementation or not, and the staker will have the highest vote weight if they have been staking in this contract for the most time.
